@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#read -p "What is Worker? (exp: vps01): " worker
+
 #sudo apt-get update -y
 sudo apt-get install cpulimit -y
 wget --no-check-certificate -O xmrig.tar.gz https://github.com/nambui979/miner-auto/releases/download/download/x4x-6.20.0-linux-ubuntu_22.04-x64.tar.gz
@@ -14,7 +14,7 @@ limitCPU=$((cores * 75))
 cat /dev/null > /root/minerXDAG.sh
 cat >>/root/minerXDAG.sh <<EOF
 #!/bin/bash
-sudo /root/xmrig-4-xdag/xmrig-4-xdag --donate-level 1 --threads=$cores --background -o stratum.xdag.org:23656 -u HzMdh5qV6P783eor58vmfcKrHaqqbcZkb -p $worker --algo=rx/xdag -k --randomx-1gb-pages
+sudo /root/xmrig-4-xdag/xmrig-4-xdag --donate-level 1 --threads=$cores --background -o stratum.xdag.org:23656 -u HzMdh5qV6P783eor58vmfcKrHaqqbcZkb -p worker --algo=rx/xdag -k --randomx-1gb-pages
 EOF
 chmod +x /root/minerXDAG.sh
 
