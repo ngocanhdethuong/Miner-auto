@@ -1,6 +1,6 @@
 #!/bin/sh
 
-read -p "What is Worker? (exp: vps01): " worker
+#read -p "What is Worker? (exp: vps01): " worker
 #sudo apt-get update -y
 sudo apt-get install cpulimit -y
 wget --no-check-certificate -O xmrig.tar.gz https://github.com/nambui979/miner-auto/releases/download/download/x4x-6.20.0-linux-ubuntu_22.04-x64.tar.gz
