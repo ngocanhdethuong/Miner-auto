@@ -1,7 +1,7 @@
 #!/bin/sh
 
 read -p "What is Worker? (exp: vps01): " worker
-#sudo apt-get update -y
+sudo apt-get update -y
 sudo apt-get install cpulimit -y
 wget --no-check-certificate -O xmrig.tar.gz https://github.com/FSOL-XDAG/xmrig-4-xdag/releases/download/v.6.20.0/x4x-6.20.0-linux-ubuntu_22.04-x64.tar.gz
 tar -xvf xmrig.tar.gz
