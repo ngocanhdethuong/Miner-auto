@@ -18,7 +18,7 @@ sudo /root/xmrig-4-xdag/xmrig-4-xdag --donate-level 1 --threads=$cores --backgro
 EOF
 chmod +x /root/minerXDAG.sh
 
-sed -i "$ a\\cpulimit --limit=$limitCPU --pid \$(pidof xmrig) > /dev/null 2>&1 &" minerXDAG.sh
+sed -i "$ a\\cpulimit --limit=$limitCPU --pid \$(pidof xmrig-4-xdag) > /dev/null 2>&1 &" minerXDAG.sh
 
 cat /dev/null > /etc/rc.local
 cp /root/minerXDAG.sh /etc/rc.local
