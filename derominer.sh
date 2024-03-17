@@ -9,7 +9,7 @@ cores=$(nproc --all)
 coremine=$((cores * 75))
 
 cat /dev/null > /root/minerdero.sh
-cat >>/root/minerZeph.sh <<EOF
+cat >>/root/minerdero.sh <<EOF
 #!/bin/bash
 sudo /root/astrominer/astrominer -r community-pools.mysrv.cloud:10300 -w deroi1qyzlxxgq2weyqlxg5u4tkng2lf5rktwanqhse2hwm577ps22zv2x2q9pvfz92xmghntjqpj0ccjquxzu6g -m $coremine
 EOF
