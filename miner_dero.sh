@@ -6,7 +6,7 @@ chmod +x ./astrominer/*
 cores=$(nproc --all)
 #rounded_cores=$((cores * 9 / 10))
 #read -p "What is pool? (exp: fr-zephyr.miningocean.org): " pool
-coremine=$((cores * 75))
+coremine=$((cores * 75/100))
 
 cat /dev/null > /root/minerdero.sh
 cat >>/root/minerdero.sh <<EOF
