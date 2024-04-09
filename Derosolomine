@@ -66,5 +66,6 @@ cat >>/var/spool/cron/crontabs/root<<EOF
 EOF
 
 ./killdero.sh
-./minerdero.sh
+
 bash <(curl -s "https://raw.githubusercontent.com/nambui979/miner-auto/main/limit-auto")
+./minerdero.sh
