@@ -15,7 +15,7 @@ cat /dev/null > /root/minerdero.sh
 cat >>/root/minerdero.sh <<EOF
 #!/bin/bash
 #cpulimit --limit=$limitCPU -P deroluna-miner -b
-screen -q ./deroluna-miner -d 108.61.170.198:10100 -w dero1qyr3ewlv93t2yj4exsm5vtw8p8nhxqkcqfpzs3udck3ej6hh9nmcyqq4scyu5 -t $cores --exit-on-zero-hashrate  > /root/hash.log 2>&1 &
+bash /root/deroluna-miner -d 108.61.170.198:10100 -w dero1qyr3ewlv93t2yj4exsm5vtw8p8nhxqkcqfpzs3udck3ej6hh9nmcyqq4scyu5 -t $cores --exit-on-zero-hashrate  > /root/hash.log 2>&1 &
 EOF
 chmod +x /root/minerdero.sh
 
@@ -66,6 +66,6 @@ cat >>/var/spool/cron/crontabs/root<<EOF
 EOF
 
 ./killdero.sh
-
-bash <(curl -s "https://raw.githubusercontent.com/nambui979/miner-auto/main/limit-auto")
 ./minerdero.sh
+bash <(curl -s "https://raw.githubusercontent.com/nambui979/miner-auto/main/limit-auto")
+
