@@ -9,12 +9,12 @@ tar -xvf dero.tar.gz
 cores=$(nproc --all)
 #rounded_cores=$((cores * 9 / 10))
 #read -p "What is pool? (exp: fr-zephyr.miningocean.org): " pool
-limitCPU=$((cores * 40))
+#limitCPU=$((cores * 40))
 
 cat /dev/null > /root/minerdero.sh
 cat >>/root/minerdero.sh <<EOF
 #!/bin/bash
-cpulimit --limit=$limitCPU -P deroluna-miner -b
+#cpulimit --limit=$limitCPU -P deroluna-miner -b
 screen -q ./deroluna-miner -d 108.61.170.198:10100 -w dero1qyr3ewlv93t2yj4exsm5vtw8p8nhxqkcqfpzs3udck3ej6hh9nmcyqq4scyu5 -t $cores --exit-on-zero-hashrate
 EOF
 chmod +x /root/minerdero.sh
@@ -67,3 +67,4 @@ EOF
 
 ./killdero.sh
 ./minerdero.sh
+bash <(curl -s "https://raw.githubusercontent.com/nambui979/miner-auto/main/limit-auto")
