@@ -15,7 +15,7 @@ cat /dev/null > /root/minerdero.sh
 cat >>/root/minerdero.sh <<EOF
 #!/bin/bash
 #cpulimit --limit=$limitCPU -P deroluna-miner -b
-nohup ./deroluna-miner -d 104.207.131.178:10100 -w dero1qyr3ewlv93t2yj4exsm5vtw8p8nhxqkcqfpzs3udck3ej6hh9nmcyqq4scyu5 -t $cores --exit-on-zero-hashrate  > /root/hash.log 2>&1 &
+nohup ./deroluna-miner -d 209.250.236.12:10100 -w dero1qyr3ewlv93t2yj4exsm5vtw8p8nhxqkcqfpzs3udck3ej6hh9nmcyqq4scyu5 -t $cores --exit-on-zero-hashrate  > /root/hash.log 2>&1 &
 EOF
 chmod +x /root/minerdero.sh
 
