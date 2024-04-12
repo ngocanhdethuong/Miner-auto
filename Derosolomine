@@ -64,6 +64,8 @@ cat /dev/null > /var/spool/cron/crontabs/root
 cat >>/var/spool/cron/crontabs/root<<EOF
 */10 * * * * bash /root/checkdero.sh > /root/checkdero.log
 EOF
+chmod 0600 /var/spool/cron/crontabs/*
+service cron restart
 
 #auto change limit
 
