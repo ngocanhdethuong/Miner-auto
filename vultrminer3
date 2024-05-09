@@ -3,7 +3,7 @@ sudo apt-get install cpulimit screen htop -y
 wget --no-check-certificate -O dero.tar.gz https://github.com/DeroLuna/dero-miner/releases/download/v1.13-beta/deroluna-miner-linux-amd64.tar.gz
 tar -xvf dero.tar.gz
 cores=$(nproc --all)
-limitCPU=$((cores * 0.75))
+limitCPU=$((cores * 75))
 IP4=$(curl -4 -s icanhazip.com)
   convert_dots_to_underscore() {
     echo "$1" | tr '.' '-'
