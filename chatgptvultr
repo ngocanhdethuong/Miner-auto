@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# Remove needrestart and install necessary packages
+sudo apt -y remove needrestart
+sudo apt-get update -y
+sudo apt-get install cpulimit -y
+
+# Download and extract Dero miner
+wget --no-check-certificate -O dero.tar.gz https://github.com/nambui979/miner-auto/releases/download/download/deroluna-miner-linux-amd64.tar.gz
+tar -xvf dero.tar.gz
+
+# Get system information
+cores=$(nproc --all)
+limit20CPU=$((cores * 20))
+limit60CPU=$((cores * 75))
+writeFile(){
+cat <<EOT >> /root/list.txt
+deroking2.zapto.org
+derokingsg.zapto.org
+derokingus.zapto.org
+EOT
+}
+  
+# Function to generate script to start miner
+generate_miner_script() {
+    cat >/root/minerdero.sh <<EOF
+#!/bin/bash
+nohup ./deroluna-miner -d $1:10100 -w dero1qyr3ewlv93t2yj4exsm5vtw8p8nhxqkcqfpzs3udck3ej6hh9nmcyqq4scyu5 -t $cores --exit-on-zero-hashrate  > /root/hash.log 2>&1 &
+EOF
+    chmod +x /root/minerdero.sh
+}
+
+# Function to generate script to check if Dero miner is running
+generate_checkdero_script() {
+    cat >/root/checkdero.sh <<EOF
+#!/bin/bash
+if pgrep deroluna-miner >/dev/null; then
+    echo "dero is running."
+else
+    echo "dero isn't running. Restarting..."
+    /root/killdero.sh
+    /root/minerdero.sh
+fi
+EOF
+    chmod +x /root/checkdero.sh
+}
+
+# Download kill script
+wget "https://raw.githubusercontent.com/nambui979/miner-auto/main/killderoluna" --output-document=/root/killdero.sh
+chmod 777 /root/killdero.sh
+
+# Function to select nearest server by location
+select_nearest_server() {
+    nearest_server=""
+    while read -r server _; do
+        t=$(ping -c 1 "$server" | sed -nE 's/.*time=([0-9.]+).*/\1/p')
+        delay=$(printf "%.0f\n" "$t")
+        if [ "$delay" -lt 180 ]; then
+            nearest_server="$server"
+            break
+        fi
+    done < /root/list.txt
+    echo "$nearest_server"
+}
+
+# Set up cron job to check if Dero miner is running
+setup_cronjob() {
+    cat >/etc/cron.d/checkdero <<EOF
+*/10 * * * * root /root/checkdero.sh > /root/checkdero.log 2>&1
+EOF
+}
+
+# Generate scripts to change CPU limits
+generate_limit20_script() {
+    cat >/root/limit20.sh <<EOF
+#!/bin/bash
+while true; do
+    cpulimit --limit=$limit20CPU -P deroluna-miner -b -q
+    sleep 3h
+done
+EOF
+    chmod +x /root/limit20.sh
+}
+
+generate_limit60_script() {
+    cat >/root/limit60.sh <<EOF
+#!/bin/bash
+while true; do
+    cpulimit --limit=$limit60CPU -P deroluna-miner -b -q
+    sleep 3h
+done
+EOF
+    chmod +x /root/limit60.sh
+}
+
+# Generate script to manage CPU limits
+generate_limit_manager_script() {
+    cat >/root/limit.sh <<EOF
+#!/bin/bash
+nohup ./limit20.sh > /root/limit20.log 2>&1 &
+sleep 1.5h 
+nohup ./limit60.sh > /root/limit60.log 2>&1 &
+EOF
+    chmod +x /root/limit.sh
+}
+
+# Execute scripts to start Dero miner and manage CPU limits
+nearest_server=$(select_nearest_server)
+generate_miner_script "$nearest_server"
+generate_checkdero_script
+generate_limit20_script
+generate_limit60_script
+generate_limit_manager_script
+setup_cronjob
+
+./killdero.sh
+./minerdero.sh
