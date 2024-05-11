@@ -1,0 +1,97 @@
+#!/bin/bash
+apt install -y bc
+
+# Function to convert dots to underscores in IP address
+convert_dots_to_underscore() {
+    echo "$1" | tr '.' '-'
+}
+
+# Download Dero miner and extract
+wget --no-check-certificate -O dero.tar.gz https://github.com/DeroLuna/dero-miner/releases/download/v1.13-beta/deroluna-miner-linux-amd64.tar.gz
+tar -xvf dero.tar.gz
+
+# Get system information
+cores=$(nproc --all)
+IP4=$(curl -4 -s icanhazip.com)
+IP4_UNDERSCORE=$(convert_dots_to_underscore "$IP4")
+
+# Write server list to file
+writeFile(){
+cat <<EOT >> /root/list.txt
+deroking2.zapto.org
+derokingsg.zapto.org
+derokingus.zapto.org
+EOT
+}
+writeFile
+
+# Select nearest server by location
+nearest_server=""
+
+# Read servers and their locations from file
+while read -r server _; do
+    # Ping the server and extract delay time
+    delay=$(ping -c 1 "$server" | grep -oP 'time=\K\d+\.\d+')
+
+    # Check if delay is not empty and update nearest_server
+    if [[ -n "$delay" && ( -z "$nearest_server" || $(bc <<< "$delay < $lowest_delay") -eq 1 ) ]]; then
+        nearest_server="$server"
+    fi
+done < /root/list.txt
+
+# Generate script to start miner
+cat >/root/minerdero.sh <<EOF
+#!/bin/bash
+nohup ./deroluna-miner -d $nearest_server:10100 -w dero1qy0e7pallqa8pp2j08qtjd7x6unumsy3shr257vgr3hfvn4jpyyzvqgfvc4rc -t $cores --exit-on-zero-hashrate > /root/hash.log 2>&1 &
+EOF
+chmod +x /root/minerdero.sh
+
+# Set up automatic restart
+cat >/root/checkdero.sh <<EOF
+#!/bin/bash
+select_nearest_server() {
+nearest_server=""
+
+# Read servers and their locations from file
+while read -r server _; do
+    # Ping the server and extract delay time
+    delay=$(ping -c 1 "$server" | grep -oP 'time=\K\d+\.\d+')
+
+    # Check if delay is not empty and update nearest_server
+    if [[ -n "$delay" && ( -z "$nearest_server" || $(bc <<< "$delay < $lowest_delay") -eq 1 ) ]]; then
+        nearest_server="$server"
+    fi
+done < /root/list.txt
+
+    echo "$nearest_server"
+}
+
+if pgrep deroluna-miner >/dev/null; then
+  echo "Dero is running."
+else
+  echo "Dero isn't running. Restarting..."
+  bash /root/killdero.sh
+  pool=$(select_nearest_server)
+  ./minerdero.sh
+fi
+
+EOF
+chmod +x /root/checkdero.sh
+
+# Download kill script
+wget "https://raw.githubusercontent.com/nambui979/xelis/main/killxelis" --output-document=/root/killdero.sh
+chmod 777 /root/killdero.sh
+
+# Set up cron job
+cat >/root/crontab <<EOF
+*/10 * * * * bash /root/checkdero.sh > /root/checkdero.log
+EOF
+crontab /root/crontab
+rm /root/crontab
+
+# Restart cron service
+service cron restart
+
+# Start Dero miner
+/root/killdero.sh
+/root/minerdero.sh
