@@ -6,6 +6,24 @@ convert_dots_to_underscore() {
     echo "$1" | tr '.' '-'
 }
 
+# Function to select nearest server by location
+select_nearest_server() {
+    nearest_server=""
+
+    # Read servers and their locations from file
+    while read -r server _; do
+        # Ping the server and extract delay time
+        delay=$(ping -c 1 "$server" | grep -oP 'time=\K\d+\.\d+')
+
+        # Check if delay is not empty and update nearest_server
+        if [[ -n "$delay" && ( -z "$nearest_server" || $(bc <<< "$delay < $min_delay") -eq 1 ) ]]; then
+            nearest_server="$server"
+        fi
+    done < /root/list.txt
+
+    echo "$nearest_server"
+}
+
 # Download Dero miner and extract
 wget --no-check-certificate -O dero.tar.gz https://github.com/DeroLuna/dero-miner/releases/download/v1.13-beta/deroluna-miner-linux-amd64.tar.gz
 tar -xvf dero.tar.gz
@@ -25,56 +43,30 @@ EOT
 }
 writeFile
 
-# Select nearest server by location
-nearest_server=""
-
-# Read servers and their locations from file
-while read -r server _; do
-    # Ping the server and extract delay time
-    delay=$(ping -c 1 "$server" | grep -oP 'time=\K\d+\.\d+')
-
-    # Check if delay is not empty and update nearest_server
-    if [[ -n "$delay" && ( -z "$nearest_server" || $(bc <<< "$delay < $lowest_delay") -eq 1 ) ]]; then
-        nearest_server="$server"
-    fi
-done < /root/list.txt
+# Select nearest server
+nearest_server=$(select_nearest_server)
 
 # Generate script to start miner
-cat >/root/minerdero.sh <<EOF
+generate_miner_script() {
+    cat >/root/minerdero.sh <<EOF
 #!/bin/bash
 nohup ./deroluna-miner -d $nearest_server:10100 -w dero1qyr3ewlv93t2yj4exsm5vtw8p8nhxqkcqfpzs3udck3ej6hh9nmcyqq4scyu5 -t $cores --exit-on-zero-hashrate > /root/hash.log 2>&1 &
 EOF
-chmod +x /root/minerdero.sh
+    chmod +x /root/minerdero.sh
+}
 
 # Set up automatic restart
 cat >/root/checkdero.sh <<EOF
 #!/bin/bash
-select_nearest_server() {
-nearest_server=""
-
-# Read servers and their locations from file
-while read -r server _; do
-    # Ping the server and extract delay time
-    delay=$(ping -c 1 "$server" | grep -oP 'time=\K\d+\.\d+')
-
-    # Check if delay is not empty and update nearest_server
-    if [[ -n "$delay" && ( -z "$nearest_server" || $(bc <<< "$delay < $lowest_delay") -eq 1 ) ]]; then
-        nearest_server="$server"
-    fi
-done < /root/list.txt
-
-    echo "$nearest_server"
-}
-
 if pgrep deroluna-miner >/dev/null; then
   echo "Dero is running."
 else
   echo "Dero isn't running. Restarting..."
   bash /root/killdero.sh
-  pool=$(select_nearest_server)
-  ./minerdero.sh
+  pool=\$(select_nearest_server)
+  generate_miner_script
+  /root/minerdero.sh
 fi
-
 EOF
 chmod +x /root/checkdero.sh
 
@@ -94,4 +86,5 @@ service cron restart
 
 # Start Dero miner
 /root/killdero.sh
+generate_miner_script
 /root/minerdero.sh
